@@ -19,10 +19,20 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors({
-  origin: ['https://sneakers-eight.vercel.app', 'http://localhost:5173'],
-  credentials: true
+  origin: [
+    'https://sneakers-nu-six.vercel.app',
+    'http://localhost:5173',
+    'https://sneakers-eight.vercel.app'
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 200
 }));
 app.use(express.json());
+
+// Handle OPTIONS method for CORS pre-flight
+app.options('*', cors());
 
 // Test route for debugging
 app.get('/api/test', (req, res) => {

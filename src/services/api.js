@@ -1,4 +1,5 @@
 const API_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api`.replace(/\/+$/, '');
+console.log('API_URL:', API_URL); // For debugging
 
 export const fetchProducts = async (page = 1, limit = 10) => {
   try {
