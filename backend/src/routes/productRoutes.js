@@ -13,12 +13,29 @@ router.get('/', async (req, res) => {
     
     console.log(`Query params - page: ${page}, limit: ${limit}`);
     
+    // Check MongoDB connection
+    if (mongoose.connection.readyState !== 1) {
+      console.log('MongoDB not connected. Current state:', mongoose.connection.readyState);
+      await mongoose.connection.close();
+      await connectDB();
+    }
+
     const products = await Product.find({})
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .lean() // For better performance
+      .exec();
+    
+    if (!products) {
+      console.log('No products found in database');
+      return res.status(404).json({ message: 'No products found' });
+    }
     
     console.log(`Found ${products.length} products`);
+    
+    // Verify data structure
+    console.log('Sample product:', JSON.stringify(products[0], null, 2));
 
     const total = await Product.countDocuments();
 

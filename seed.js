@@ -47,19 +47,30 @@ const products = [
 
 const seedDatabase = async () => {
   try {
-    await connectDB();
+    const conn = await connectDB();
+    console.log('MongoDB Connected for seeding:', conn.connection.host);
 
-    // Clear existing products
-    await Product.deleteMany({});
-    console.log('Cleared existing products');
+    // Check if products already exist
+    const existingProducts = await Product.countDocuments();
+    console.log(`Found ${existingProducts} existing products`);
 
-    // Insert new products
-    const createdProducts = await Product.insertMany(products);
-    console.log(`Created ${createdProducts.length} products`);
+    if (existingProducts === 0) {
+      // Insert new products
+      const createdProducts = await Product.insertMany(products);
+      console.log(`Created ${createdProducts.length} products`);
+      console.log('Sample product:', JSON.stringify(createdProducts[0], null, 2));
+    } else {
+      console.log('Products already exist, skipping seed');
+    }
+
+    // Verify products were created
+    const finalCount = await Product.countDocuments();
+    console.log(`Final product count: ${finalCount}`);
 
     process.exit(0);
   } catch (error) {
-    console.error(`Error seeding database: ${error.message}`);
+    console.error('Error seeding database:', error);
+    console.error('Error details:', JSON.stringify(error, null, 2));
     process.exit(1);
   }
 };
