@@ -6,14 +6,19 @@ const router = express.Router();
 // Get all products with pagination
 router.get('/', async (req, res) => {
   try {
+    console.log('Received product request');
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
-
+    
+    console.log(`Query params - page: ${page}, limit: ${limit}`);
+    
     const products = await Product.find({})
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
+    
+    console.log(`Found ${products.length} products`);
 
     const total = await Product.countDocuments();
 

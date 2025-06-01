@@ -24,6 +24,11 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Test route for debugging
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'API is working', timestamp: new Date().toISOString() });
+});
+
 // API routes
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
