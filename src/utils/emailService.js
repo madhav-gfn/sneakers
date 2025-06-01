@@ -2,10 +2,10 @@ import nodemailer from 'nodemailer';
 
 // Create Nodemailer transporter using Mailtrap Live SMTP
 const transporter = nodemailer.createTransport({
-  host: "live.smtp.mailtrap.io",
-  port: 587,
+  host: process.env.MAILTRAP_HOST,
+  port: process.env.MAILTRAP_PORT,
   auth: {
-    user: "api",
+    user: process.env.MAILTRAP_USER,
     pass: process.env.MAILTRAP_PASS
   },
   secure: false,

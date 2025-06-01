@@ -1,9 +1,15 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import connectDB from './src/config/db.js';
 import productRoutes from './src/routes/productRoutes.js';
+import cartRoutes from './src/routes/cartRoutes.js';
 import { sendOrderConfirmationEmail, sendDeclinedTransactionEmail } from './src/utils/emailService.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Connect to MongoDB
 connectDB().catch(console.error);
@@ -11,11 +17,13 @@ connectDB().catch(console.error);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 
 // API routes
 app.use('/api/products', productRoutes);
+app.use('/api/cart', cartRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -53,6 +61,27 @@ app.post('/api/send-email', async (req, res) => {
     console.error('Email error:', error);
     res.status(500).json({ error: 'Failed to send email' });
   }
+});
+
+// Serve static files in production
+if (process.env.NODE_ENV === 'production') {
+  // Serve static files from the dist directory
+  app.use(express.static(join(__dirname, 'dist')));
+
+  // Handle all other routes by serving the index.html
+  app.get('*', (req, res) => {
+    if (req.url.startsWith('/api')) {
+      res.status(404).json({ message: 'API route not found' });
+    } else {
+      res.sendFile(join(__dirname, 'dist', 'index.html'));
+    }
+  });
+}
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Something went wrong!' });
 });
 
 process.on('unhandledRejection', (err) => {

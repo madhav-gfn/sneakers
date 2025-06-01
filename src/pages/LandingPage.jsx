@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchProducts } from '../services/api';
+import { addToCart } from '../services/cartApi';
 import converseImg from '../assets/converse.jpg';
 
 function LandingPage() {
@@ -8,6 +9,8 @@ function LandingPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedProducts, setSelectedProducts] = useState({});
+  const [cartMessage, setCartMessage] = useState('');
+  const sessionId = 'user123'; // In a real app, this would come from auth/session
 
   useEffect(() => {
     loadProducts();
@@ -51,6 +54,23 @@ function LandingPage() {
     loadProducts(page);
   };
 
+  const handleAddToCart = async (product) => {
+    try {
+      const selection = selectedProducts[product._id];
+      await addToCart(sessionId, {
+        productId: product._id,
+        name: product.name,
+        price: product.price,
+        quantity: selection.quantity,
+        variant: selection.variant
+      });
+      setCartMessage('Added to cart successfully!');
+      setTimeout(() => setCartMessage(''), 3000);
+    } catch (error) {
+      setError('Failed to add to cart');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -86,12 +106,17 @@ function LandingPage() {
             </div>
             <div className="flex items-center space-x-6">
               <Link to="/" className="text-gray-700 hover:text-gray-900 font-medium">Home</Link>
-              <Link to="/checkout" className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+              <Link to="/cart" className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
                 Cart
               </Link>
             </div>
           </div>
         </nav>
+        {cartMessage && (
+          <div className="fixed top-20 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded-md shadow-lg transition-opacity duration-500">
+            {cartMessage}
+          </div>
+        )}
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 mt-20">
@@ -145,7 +170,7 @@ function LandingPage() {
                   </div>
                 </div>
 
-                <div className="mt-6">
+                <div className="mt-6 space-y-2">
                   <Link
                     to="/checkout"
                     state={{ 
@@ -159,6 +184,12 @@ function LandingPage() {
                   >
                     Buy Now
                   </Link>
+                  <button
+                    onClick={() => handleAddToCart(product)}
+                    className="w-full border border-gray-300 rounded-md py-2 px-4 flex items-center justify-center text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    Add to Cart
+                  </button>
                 </div>
               </div>
             </div>

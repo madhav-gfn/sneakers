@@ -1,18 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 function CheckoutPage() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { 
-    quantity = 1, 
-    variant = 'Black',
-    productId = 1,
-    name = "Converse Chuck 70 Hi",
-    price = 85.00
-  } = location.state || {};
+  const navigate = useNavigate();  const location = useLocation();
+  const [cartItems, setCartItems] = useState([]);
+  const sessionId = 'user123'; // In a real app, this would come from auth/session
 
-  const total = price * quantity;
+  useEffect(() => {
+    // If items come from cart page
+    if (location.state?.items) {
+      setCartItems(location.state.items);
+    }
+    // If single item comes from direct purchase
+    else if (location.state?.productId) {
+      setCartItems([{
+        productId: location.state.productId,
+        name: location.state.name || "Converse Chuck 70 Hi",
+        variant: location.state.variant || 'Black',
+        quantity: location.state.quantity || 1,
+        price: location.state.price || 85.00,
+        total: (location.state.price || 85.00) * (location.state.quantity || 1)
+      }]);
+    }
+  }, [location.state]);
+
+  const total = cartItems.reduce((sum, item) => sum + item.total, 0);
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -73,16 +85,8 @@ function CheckoutPage() {
     const transactionOutcome = simulateTransaction();
     
     const orderData = {
-      ...formData,
-      orderNumber,
-      items: [{
-        productId,
-        name,
-        variant,
-        price,
-        quantity,
-        total
-      }]
+      ...formData,      orderNumber,
+      items: cartItems
     };
 
     switch (transactionOutcome) {
@@ -123,19 +127,27 @@ function CheckoutPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-extrabold text-gray-900 mb-8">Checkout</h1>
-          
-          <div className="bg-white shadow-sm rounded-lg p-6 mb-8">
+            <div className="bg-white shadow-sm rounded-lg p-6 mb-8">
             <h2 className="text-xl font-semibold mb-6">Order Summary</h2>
             <div className="border-b border-gray-200 pb-6 mb-6">
-              <div className="flex justify-between mb-2">
-                <span className="text-gray-600">{name} ({variant})</span>
-                <span className="text-gray-900">${price.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between mb-2">
-                <span className="text-gray-600">Quantity</span>
-                <span className="text-gray-900">{quantity}</span>
-              </div>
-              <div className="flex justify-between font-semibold text-lg">
+              <ul className="divide-y divide-gray-200">
+                {cartItems.map((item, index) => (
+                  <li key={`${item.productId}-${item.variant}-${index}`} className="py-4">
+                    <div className="flex justify-between mb-2">
+                      <div>
+                        <span className="text-gray-600">{item.name}</span>
+                        <span className="text-gray-500 text-sm ml-2">({item.variant})</span>
+                      </div>
+                      <span className="text-gray-900">${item.price.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Quantity: {item.quantity}</span>
+                      <span className="text-gray-900">Subtotal: ${item.total.toFixed(2)}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <div className="flex justify-between font-semibold text-lg mt-6">
                 <span>Total</span>
                 <span>${total.toFixed(2)}</span>
               </div>

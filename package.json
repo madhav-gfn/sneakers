@@ -9,8 +9,12 @@
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "server": "node server.js",
-    "start": "concurrently \"npm run dev\" \"npm run server\"",
-    "seed": "node seed.js"
+    "start": "node server.js",
+    "seed": "node seed.js",
+    "dev:full": "concurrently \"npm run dev\" \"npm run server\""
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "concurrently": "^9.1.2",
